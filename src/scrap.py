@@ -50,6 +50,13 @@ class Scraper:
 
     def _parse_product_info(self, url: str, response_soup: bs) -> ProductInfo:
         product_url = url
+        product_name = self._get_product_name(response_soup)
+
+        print(url, product_name)
+
+    @staticmethod
+    def _get_product_name(response_soup: bs) -> str:
+        return response_soup.find("span", {"id": "productTitle"}).text.strip()
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
