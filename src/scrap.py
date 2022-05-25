@@ -41,12 +41,14 @@ class Scraper:
     def _scrap_url(self, response_soup: bs, page_no: int) -> None:
         result_set = response_soup.findAll("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
                                                           "link-style a-text-normal"})
-        for i in result_set:
-            url = self._base_url + i.get("href")
+        for ele in result_set:
+            url = self._base_url + ele.get("href")
+            response = req.get(url, headers=self._headers).text
+            response_soup = bs(response, "html.parser")
             product_info = self._parse_product_info(url, response_soup)
+            self._product_info_list.append(product_info)
 
-    @classmethod
-    def _parse_product_info(cls, url: str, response_soup: bs) -> ProductInfo:
+    def _parse_product_info(self, url: str, response_soup: bs) -> ProductInfo:
         product_url = url
 
     def _get_total_pages(self, page_nav_url: str) -> int:
