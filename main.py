@@ -15,3 +15,4 @@ if __name__ == "__main__":
                       'Chrome/101.0.4951.67 Safari/537.36',
     }
     scraper = Scraper(headers)
+    scraper.scrap_all_pages()
