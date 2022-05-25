@@ -27,7 +27,7 @@ class Scraper:
         self._total_pages = self._get_total_pages(self._page_nav_url)
         self._total_nav_page_urls_list = [
             "https://www.amazon.in/s?k=bags&page={}&crid=2M096C61O4MLT&qid=1653504203&sprefix=" \
-            "ba%2Caps%2C283&ref=sr_pg_2".format(page_no) for page_no in range(self._total_pages + 1)]
+            "ba%2Caps%2C283&ref=sr_pg_2".format(page_no) for page_no in range(1 , self._total_pages + 1)]
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
