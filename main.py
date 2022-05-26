@@ -16,3 +16,4 @@ if __name__ == "__main__":
     }
     scraper = Scraper(headers)
     scraper.scrap_all_pages()
+    scraper.inject_info_in_product_overview()
