@@ -43,8 +43,9 @@ class Scraper:
             product_url = self._get_product_url(tag)
             product_price = self._get_product_price(tag)
             product_ratings = self._get_product_rating(tag)
+            product_reviews = self._get_no_of_reviews(tag)
 
-            print(product_name, product_price, product_ratings)
+            print(product_ratings, product_reviews)
 
     def _get_product_url(self, tag: Tag) -> str:
         url = tag.find("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
@@ -63,6 +64,13 @@ class Scraper:
     def _get_product_rating(tag: Tag) -> Optional[str]:
         try:
             return tag.find("span", {"class": "a-icon-alt"}).text
+        except AttributeError:
+            return None
+
+    @staticmethod
+    def _get_no_of_reviews(tag: Tag) -> Optional[str]:
+        try:
+            return tag.find("span", {"class": "a-size-base s-light-weight-text"}).text
         except AttributeError:
             return None
 
