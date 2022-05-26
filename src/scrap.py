@@ -26,8 +26,8 @@ class Scraper:
                              "ba%2Caps%2C283&ref=sr_pg_2"
         self._total_nav_pages = self._get_total_pages(self._nav_page_url)
         self._total_nav_pages_url_list = ["https://www.amazon.in/s?k=bags&page={}&crid=2M096C61O4MLT&qid=" \
-                                          "1653504203&sprefix=ba%2Caps%2C283&ref=sr_pg_2".format(page_no) for page_no
-                                          in range(1, self._total_nav_pages + 1)]
+                                          "1653504203&sprefix=ba%2Caps%2C283&ref=sr_pg_{}".format(page_no, page_no) for
+                                          page_no in range(1, self._total_nav_pages + 1)]
         self._product_info_list = []  # type: List[ProductInfo]
 
     def scrap_all_pages(self) -> None:
@@ -52,8 +52,9 @@ class Scraper:
         product_url = url
         product_name = self._get_product_name(response_soup)
         product_price = self._get_product_price(response_soup)
+        product_rating = self._get_product_rating(response_soup)
 
-        print(product_url, product_name, product_price)
+        print(product_url, product_name, product_rating)
 
     @staticmethod
     def _get_product_name(response_soup: bs) -> str:
@@ -62,6 +63,10 @@ class Scraper:
     @staticmethod
     def _get_product_price(response_soup: bs) -> str:
         return response_soup.find("span", {"class": "a-offscreen"}).text.strip()
+
+    @staticmethod
+    def _get_product_rating(response_soup: bs) -> str:
+        return response_soup.find("span",{"class":"a-icon-alt"}).text.strip()
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
