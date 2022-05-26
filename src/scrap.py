@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from typing import Dict, Optional, List
 
@@ -13,8 +14,8 @@ class ProductInfo:
     ratings: int
     number_of_reviews: str
     description: str
-    asin: str
     product_description: str
+    asin: str
     manufacturer: str
 
 
@@ -41,9 +42,10 @@ class Scraper:
             product_url = ele[0]
             response = req.get(product_url, headers=self._headers).text
             response_soup = bs(response, "html.parser")
-            product_description = self._get_description(response_soup)
+            description = self._get_description(response_soup)
+            asin = self._get_asin(response_soup)
 
-            print(product_description)
+            print(asin)
 
     def _parse_product_overview(self, response_soup: bs) -> None:
         r_set = response_soup.findAll("div", {"data-component-type": "s-search-result"})
@@ -91,6 +93,19 @@ class Scraper:
             res.append([refined_text])
 
         return res
+
+    @staticmethod
+    def _get_asin(response_soup: bs) -> Optional[str]:
+        try:
+            r_set = response_soup.find("div", {"id": "detailBulletsWrapper_feature_div"}).findAll("li")
+        except AttributeError:
+            return None
+        for i in r_set:
+            x = i.text.strip().encode("ascii", "ignore")
+            y = x.decode().strip()
+            z = re.sub("\s{1,}", " ", y).split(":")
+            if "ASIN" in z[0]:
+                return (z[1].strip())
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
