@@ -1,22 +1,10 @@
+import csv
 import re
-from dataclasses import dataclass
 from typing import Dict, Optional, List
 
 import requests as req
 from bs4 import BeautifulSoup as bs, Tag
-
-
-@dataclass
-class ProductInfo:
-    product_url: str
-    product_name: str
-    product_price: str
-    ratings: int
-    number_of_reviews: str
-    description: str
-    product_description: str
-    asin: str
-    manufacturer: str
+from tqdm import tqdm as tqdm
 
 
 class Scraper:
@@ -44,9 +32,31 @@ class Scraper:
             response_soup = bs(response, "html.parser")
             description = self._get_description(response_soup)
             asin = self._get_asin(response_soup)
+            product_description = self._get_product_description(response_soup)
             manufacturer = self._get_manufacturer(response_soup)
 
-            print(asin)
+            ele.extend([description, product_description, asin, manufacturer])
+
+    def dump(self) -> None:
+        with open("output.csv", "w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["product_url", "product_name", "product_price", "ratings",
+                                                   "number_of_reviews", "description", "product_description", "asin",
+                                                   "manufacturer"])
+            writer.writeheader()
+            for ele in tqdm(self._product_info_list, desc="Dumping..."):
+                writer.writerow(
+                    {
+                        "product_url": ele[0],
+                        "product_name": ele[1],
+                        "product_price": ele[2],
+                        "ratings": ele[3],
+                        "number_of_reviews": ele[4],
+                        "description": ele[5],
+                        "product_description": ele[6],
+                        "asin": ele[7],
+                        "manufacturer": ele[8]
+                    }
+                )
 
     def _parse_product_overview(self, response_soup: bs) -> None:
         r_set = response_soup.findAll("div", {"data-component-type": "s-search-result"})
@@ -94,6 +104,18 @@ class Scraper:
             res.append([refined_text])
 
         return res
+
+    @staticmethod
+    def _get_product_description(response_soup: bs) -> Optional[str]:
+        try:
+            raw_txt = response_soup.find("div",
+                                         {"class": "a-section a-spacing-none aplus-module-section aplus-text-section"}
+                                         ).text
+
+            x = re.sub("\s{1,}", " ", raw_txt)
+            return x
+        except AttributeError:
+            return None
 
     @staticmethod
     def _get_asin(response_soup: bs) -> Optional[str]:
