@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import requests as req
 from bs4 import BeautifulSoup as bs, Tag
@@ -42,8 +42,9 @@ class Scraper:
             product_name = self._get_product_name(tag)
             product_url = self._get_product_url(tag)
             product_price = self._get_product_price(tag)
+            product_ratings = self._get_product_rating(tag)
 
-            print(product_name, product_url, product_price)
+            print(product_name, product_price, product_ratings)
 
     def _get_product_url(self, tag: Tag) -> str:
         url = tag.find("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
@@ -59,8 +60,11 @@ class Scraper:
         return tag.find("span", {"class": "a-offscreen"}).text
 
     @staticmethod
-    def _get_product_rating(response_soup: bs) -> str:
-        return response_soup.find("span", {"class": "a-icon-alt"}).text.strip()
+    def _get_product_rating(tag: Tag) -> Optional[str]:
+        try:
+            return tag.find("span", {"class": "a-icon-alt"}).text
+        except AttributeError:
+            return None
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
