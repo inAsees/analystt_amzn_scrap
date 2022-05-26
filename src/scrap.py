@@ -107,6 +107,19 @@ class Scraper:
             if "ASIN" in z[0]:
                 return (z[1].strip())
 
+    @staticmethod
+    def _get_manufacturer(response_soup: bs) -> Optional[str]:
+        try:
+            r_set = response_soup.find("div", {"id": "detailBulletsWrapper_feature_div"}).findAll("li")
+        except AttributeError:
+            return None
+        for i in r_set:
+            x = i.text.strip().encode("ascii", "ignore")
+            y = x.decode().strip()
+            z = re.sub("\s{1,}", " ", y).split(":")
+            if "Manufacturer" in z[0]:
+                return (z[1].strip())
+
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
         response_soup = bs(response, "html.parser")
