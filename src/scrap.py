@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 import requests as req
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup as bs, Tag
 
 
 @dataclass
@@ -31,34 +31,27 @@ class Scraper:
         self._product_info_list = []  # type: List[ProductInfo]
 
     def scrap_all_pages(self) -> None:
-        page_no = 1
         for url in self._total_nav_pages_url_list:
             response = req.get(url, headers=self._headers).text
             response_soup = bs(response, "html.parser")
-            self._scrap_url(response_soup, page_no)
-            page_no += 1
+            self._parse_product_overview(response_soup)
 
-    def _scrap_url(self, response_soup: bs, page_no: int) -> None:
-        result_set = response_soup.findAll("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
-                                                          "link-style a-text-normal"})
-        for ele in result_set:
-            url = self._base_url + ele.get("href")
-            response = req.get(url, headers=self._headers).text
-            response_soup = bs(response, "html.parser")
-            product_info = self._parse_product_info(url, response_soup)
-            self._product_info_list.append(product_info)
+    def _parse_product_overview(self, response_soup: bs) -> None:
+        r_set = response_soup.findAll("div", {"data-component-type": "s-search-result"})
+        for tag in r_set:
+            product_name = self._get_product_name(tag)
+            product_url = self._get_product_url(tag)
 
-    def _parse_product_info(self, url: str, response_soup: bs) -> ProductInfo:
-        product_url = url
-        product_name = self._get_product_name(response_soup)
-        product_price = self._get_product_price(response_soup)
-        product_rating = self._get_product_rating(response_soup)
+            print(product_name, product_url)
 
-        print(product_url, product_name, product_rating)
+    def _get_product_url(self, tag: Tag) -> str:
+        url = tag.find("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
+                                      "link-style a-text-normal"}).get("href")
+        return self._base_url + url
 
     @staticmethod
-    def _get_product_name(response_soup: bs) -> str:
-        return response_soup.find("span", {"id": "productTitle"}).text.strip()
+    def _get_product_name(tag: Tag) -> str:
+        return tag.find("span", {"class": "a-size-medium a-color-base a-text-normal"}).text
 
     @staticmethod
     def _get_product_price(response_soup: bs) -> str:
@@ -66,7 +59,7 @@ class Scraper:
 
     @staticmethod
     def _get_product_rating(response_soup: bs) -> str:
-        return response_soup.find("span",{"class":"a-icon-alt"}).text.strip()
+        return response_soup.find("span", {"class": "a-icon-alt"}).text.strip()
 
     def _get_total_pages(self, page_nav_url: str) -> int:
         response = req.get(page_nav_url, headers=self._headers).text
