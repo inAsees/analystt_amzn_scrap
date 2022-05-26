@@ -44,6 +44,7 @@ class Scraper:
             response_soup = bs(response, "html.parser")
             description = self._get_description(response_soup)
             asin = self._get_asin(response_soup)
+            manufacturer = self._get_manufacturer(response_soup)
 
             print(asin)
 
