@@ -20,13 +20,15 @@ class Scraper:
         self._product_info_list = []
 
     def scrap_all_pages(self) -> None:
-        for url in self._total_nav_pages_url_list[:1]:
+        page_no = 1
+        for url in self._total_nav_pages_url_list:
             response = req.get(url, headers=self._headers).text
             response_soup = bs(response, "html.parser")
-            self._parse_product_overview(response_soup)
+            self._parse_product_overview(page_no, response_soup)
+            page_no += 1
 
     def inject_info_in_product_overview(self) -> None:
-        for ele in self._product_info_list:
+        for ele in tqdm(self._product_info_list, desc="Scraping additional info"):
             product_url = ele[0]
             response = req.get(product_url, headers=self._headers).text
             response_soup = bs(response, "html.parser")
@@ -58,9 +60,9 @@ class Scraper:
                     }
                 )
 
-    def _parse_product_overview(self, response_soup: bs) -> None:
+    def _parse_product_overview(self, page_no: int, response_soup: bs) -> None:
         r_set = response_soup.findAll("div", {"data-component-type": "s-search-result"})
-        for tag in r_set:
+        for tag in tqdm(r_set, desc="Scraping overview info from page {} products".format(page_no)):
             product_url = self._get_product_url(tag)
             product_name = self._get_product_name(tag)
             product_price = self._get_product_price(tag)
