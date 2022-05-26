@@ -41,8 +41,9 @@ class Scraper:
         for tag in r_set:
             product_name = self._get_product_name(tag)
             product_url = self._get_product_url(tag)
+            product_price = self._get_product_price(tag)
 
-            print(product_name, product_url)
+            print(product_name, product_url, product_price)
 
     def _get_product_url(self, tag: Tag) -> str:
         url = tag.find("a", {"class": "a-link-normal s-underline-text s-underline-link-text s-"
@@ -54,8 +55,8 @@ class Scraper:
         return tag.find("span", {"class": "a-size-medium a-color-base a-text-normal"}).text
 
     @staticmethod
-    def _get_product_price(response_soup: bs) -> str:
-        return response_soup.find("span", {"class": "a-offscreen"}).text.strip()
+    def _get_product_price(tag: Tag) -> str:
+        return tag.find("span", {"class": "a-offscreen"}).text
 
     @staticmethod
     def _get_product_rating(response_soup: bs) -> str:
